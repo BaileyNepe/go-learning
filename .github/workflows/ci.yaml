@@ -8,6 +8,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: simple_bank
+
+        ports:
+          - 5455:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v3
 
@@ -18,6 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: go mod tidy
+
+      - name: Run db migrations
+        run: cd simplebank && make migrateup
 
       - name: Run tests
         run: cd simplebank && make test
